@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>周易排盘 · 八字 / 六爻</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html { -webkit-font-smoothing:antialiased; }
+
+:root {
+  --bg: #11100f;
+  --surface: #1a1716;
+  --surface-high: #27211f;
+  --text: #f0e9df;
+  --muted: #bfa9a1;
+  --faint: #77625c;
+  --gold: #e3bd58;
+  --gold-soft: rgba(227,189,88,.24);
+  --gold-line: rgba(227,189,88,.16);
+  --red: #a51f26;
+  --red-soft: rgba(165,31,38,.12);
+  --red-hot: #f6b2a6;
+  --shadow: 0 26px 70px rgba(0,0,0,.36);
+  --font-serif: "Noto Serif SC","STSong","SimSun",serif;
+  --font-sans: "Inter","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background:
+    linear-gradient(180deg, rgba(165,31,38,.12), transparent 380px),
+    linear-gradient(90deg, rgba(227,189,88,.04), transparent 48%),
+    var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.7;
+}
+
+body::before {
+  content:""; position:fixed; inset:0; pointer-events:none; opacity:.05;
+  background-image: linear-gradient(rgba(255,255,255,.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.2) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(circle at center, black, transparent 76%);
+  z-index: 0;
+}
+
+/* ===== Atmosphere ===== */
+.atmo {
+  position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden;
+}
+.atmo-ring {
+  position:absolute; width:620px; aspect-ratio:1; left:50%; top:180px;
+  transform:translateX(-50%);
+  border:1px solid rgba(227,189,88,.08); border-radius:50%;
+}
+.taiji-bg {
+  position:absolute; width:220px; height:220px; left:50%; top:50%;
+  transform:translate(-50%,-50%);
+  color:rgba(227,189,88,.06);
+  animation:spin 35s linear infinite;
+}
+.bagua-bg {
+  position:absolute; width:400px; height:400px; left:50%; top:50%;
+  transform:translate(-50%,-50%);
+  animation:spin 50s linear infinite reverse;
+}
+.bagua-bg span {
+  position:absolute; font-family:var(--font-serif);
+  font-size:26px; color:rgba(227,189,88,.07);
+  transform-origin:center;
+}
+.bagua-bg span:nth-child(1) { top:0; left:50%; transform:translate(-50%,-50%); }
+.bagua-bg span:nth-child(2) { top:50%; right:0; transform:translate(50%,-50%); }
+.bagua-bg span:nth-child(3) { bottom:0; left:50%; transform:translate(-50%,50%); }
+.bagua-bg span:nth-child(4) { top:50%; left:0; transform:translate(-50%,-50%); }
+.bagua-bg span:nth-child(5) { top:14%; right:14%; transform:translate(50%,-50%); }
+.bagua-bg span:nth-child(6) { bottom:14%; right:14%; transform:translate(50%,50%); }
+.bagua-bg span:nth-child(7) { bottom:14%; left:14%; transform:translate(-50%,50%); }
+.bagua-bg span:nth-child(8) { top:14%; left:14%; transform:translate(-50%,-50%); }
+@keyframes spin { from { transform:translate(-50%,-50%) rotate(0deg); } to { transform:translate(-50%,-50%) rotate(360deg); } }
+
+/* ===== Topbar ===== */
+.topbar {
+  position:sticky; top:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 32px;
+  background:rgba(17,16,15,.9);
+  border-bottom:1px solid var(--gold-line);
+  backdrop-filter:blur(20px);
+}
+.brand { display:flex; align-items:center; gap:14px; }
+.seal {
+  width:40px; height:40px;
+  background:linear-gradient(145deg,#b92b2d,#721014);
+  color:#fff; border:1px solid rgba(255,180,172,.4);
+  border-radius:6px; font-size:18px; font-weight:900;
+  display:grid; place-items:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16), 0 10px 24px rgba(165,31,38,.26);
+}
+.brand-text { line-height:1.3; }
+.brand-text strong {
+  font-family:var(--font-serif); font-size:20px;
+  color:var(--gold); letter-spacing:2px;
+}
+.brand-text span { font-size:11px; color:var(--muted); }
+.navlinks { display:flex; gap:16px; }
+.navlinks a {
+  color:var(--muted); text-decoration:none;
+  font-size:14px; transition:color .2s;
+}
+.navlinks a:hover, .navlinks a.active { color:var(--gold); }
+.nav-icon { color:var(--gold); font-size:22px; }
+
+/* ===== Container ===== */
+.wrap { max-width: 1040px; margin:0 auto; padding:0 24px; position:relative; z-index:1; }
+
+/* ===== Hero ===== */
+.hero { text-align:center; padding:64px 0 32px; }
+.hero h1 {
+  font-family:var(--font-serif);
+  font-size: clamp(36px,5vw,52px); font-weight:900;
+  color:var(--text); letter-spacing:8px;
+  text-shadow:0 14px 34px rgba(0,0,0,.34);
+  margin-bottom:12px;
+}
+.hero h1 span { color:#fff4ee; }
+.hero p {
+  font-size:15px; color:var(--muted);
+  max-width:560px; margin:0 auto; line-height:1.8;
+}
+.hero .tag {
+  display:inline-block; margin-top:16px;
+  padding:4px 18px; border-radius:999px;
+  border:1px solid var(--gold-line);
+  color:var(--gold); font-size:12px; letter-spacing:2px;
+}
+
+/* ===== Bagua Bar ===== */
+.bagua-bar {
+  display:flex; justify-content:center; gap:16px;
+  margin:32px 0 40px;
+}
+.bagua-bar span {
+  width:36px; height:36px; border-radius:50%;
+  border:1px solid rgba(227,189,88,.12);
+  display:grid; place-items:center;
+  font-family:var(--font-serif); font-size:13px;
+  color:rgba(227,189,88,.2);
+  transition:all .3s;
+}
+.bagua-bar span:hover { border-color:rgba(227,189,88,.4); color:var(--gold); }
+
+/* ===== Quick Nav Cards ===== */
+.quick-nav { margin-bottom:40px; }
+.qn-title {
+  display:flex; align-items:center; gap:12px; margin-bottom:16px;
+}
+.qn-title span { font-size:11px; color:var(--gold); letter-spacing:3px; font-weight:600; }
+.qn-title .line { flex:1; height:1px; background:var(--gold-line); }
+.qn-grid {
+  display:grid; grid-template-columns:repeat(2,1fr); gap:14px;
+}
+.qn-card {
+  display:flex; align-items:center; gap:16px;
+  padding:20px 22px;
+  border:1px solid var(--gold-line);
+  border-radius:10px;
+  background:linear-gradient(135deg, rgba(165,31,38,.1), rgba(227,189,88,.04));
+  text-decoration:none; color:inherit;
+  transition:all .3s;
+}
+.qn-card:hover {
+  border-color:rgba(227,189,88,.5);
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(227,189,88,.1);
+}
+.qn-icon {
+  width:44px; height:44px; border-radius:50%;
+  border:1px solid rgba(227,189,88,.4);
+  display:grid; place-items:center;
+  font-family:var(--font-serif); font-size:18px; font-weight:700;
+  flex-shrink:0;
+}
+.qn-card:first-child .qn-icon { background:rgba(165,31,38,.5); color:var(--gold); }
+.qn-card:last-child .qn-icon { background:rgba(165,31,38,.4); color:var(--gold); }
+.qn-body { flex:1; }
+.qn-body h3 {
+  font-family:var(--font-serif);
+  font-size:18px; font-weight:700;
+  color:var(--gold); letter-spacing:3px; margin-bottom:4px;
+}
+.qn-body p { font-size:13px; color:var(--muted); line-height:1.6; }
+.qn-arrow { color:var(--faint); font-size:18px; flex-shrink:0; transition:transform .3s; }
+.qn-card:hover .qn-arrow { transform:translateX(4px); color:var(--gold); }
+
+/* ===== Module Grid ===== */
+.module-grid {
+  display:flex; gap:10px; margin-bottom:40px;
+  justify-content:center; flex-wrap:wrap;
+}
+.module-card {
+  padding:14px 20px;
+  border:1px solid var(--gold-line);
+  border-radius:8px;
+  background:linear-gradient(135deg, rgba(165,31,38,.08), transparent);
+  display:flex; align-items:center; gap:10px;
+  font-size:13px; color:var(--muted);
+}
+.module-card span {
+  width:28px; height:28px; border-radius:50%;
+  border:1px solid rgba(227,189,88,.25);
+  display:grid; place-items:center;
+  font-family:var(--font-serif); font-size:12px; color:var(--gold);
+}
+.module-card strong { color:var(--muted); font-weight:500; }
+
+/* ===== Features ===== */
+.features {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+  margin-bottom:48px;
+}
+.feat {
+  padding:24px 16px;
+  border:1px solid var(--gold-line);
+  border-radius:10px;
+  background:rgba(255,255,255,.02);
+  text-align:center;
+  transition:border-color .3s;
+}
+.feat:hover { border-color:rgba(227,189,88,.3); }
+.feat .i { font-size:32px; display:block; margin-bottom:10px; }
+.feat h4 { font-size:13px; font-weight:600; color:var(--text); letter-spacing:2px; margin-bottom:4px; }
+.feat p { font-size:11px; color:var(--muted); }
+
+/* ===== Footer ===== */
+.footer { text-align:center; padding:24px 0 48px; }
+.footer .l {
+  width:24px; height:2px; margin:0 auto 12px;
+  background:var(--gold); opacity:.2;
+}
+.footer p { font-size:11px; color:var(--faint); letter-spacing:3px; }
+
+/* ===== Back ===== */
+.back {
+  position:fixed; top:12px; left:12px; z-index:200;
+  width:34px; height:34px; border-radius:50%;
+  border:1px solid var(--gold-line);
+  background:rgba(17,16,15,.85);
+  color:var(--muted); font-size:12px; text-decoration:none;
+  display:grid; place-items:center;
+  backdrop-filter:blur(12px);
+  transition:all .25s;
+}
+.back:hover { color:var(--text); border-color:var(--gold); }
+
+/* ===== Shell ===== */
+.shell { display:none; min-height:100dvh; background:var(--bg); }
+.shell-top {
+  position:sticky; top:0; z-index:100;
+  height:48px; display:flex; align-items:center; padding:0 14px;
+  background:rgba(17,16,15,.96);
+  border-bottom:1px solid var(--gold-line);
+}
+.shell-top .l { display:flex; align-items:center; gap:8px; }
+.shell-top .hm {
+  height:32px; padding:0 14px; border-radius:6px; border:none;
+  background:var(--red); color:#fff;
+  font-size:12px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
+}
+.shell-top .t {
+  flex:1; text-align:center;
+  font-size:14px; color:var(--text); font-family:var(--font-serif); letter-spacing:3px;
+}
+.shell-top .sw { display:flex; gap:4px; }
+.shell-top .sw button {
+  height:30px; padding:0 10px; border-radius:6px;
+  border:1px solid var(--gold-line); background:transparent;
+  color:var(--muted); font-size:11px; cursor:pointer;
+  font-family:var(--font-sans); transition:all .2s;
+}
+.shell-top .sw button:hover { color:var(--text); border-color:var(--gold); }
+iframe { display:block; width:100%; height:calc(100dvh - 48px); border:0; background:var(--bg); }
+
+::selection { background:rgba(227,189,88,.2); color:var(--text); }
+
+@media (max-width:640px){.taiji-bg,.bg-atmo .taiji{width:140px!important;height:140px!important}.bagua-bg,.bg-atmo .bagua{width:260px!important;height:260px!important}.bagua-bg span,.bg-atmo .bagua span{font-size:18px!important}}
+@media (max-width:720px) {
+  .topbar { padding:10px 16px; flex-wrap:wrap; gap:8px; }
+  .navlinks { order:3; width:100%; gap:12px; overflow-x:auto; }
+  .wrap { padding:0 16px; }
+  .hero { padding:40px 0 24px; }
+  .qn-grid { grid-template-columns:1fr; gap:12px; }
+  .qn-card { padding:16px 18px; }
+  .features { grid-template-columns:repeat(2,1fr); gap:10px; }
+  .module-grid { gap:8px; }
+  .module-card { padding:10px 14px; font-size:12px; }
+  .bagua-bar { gap:10px; }
+  .bagua-bar span { width:30px; height:30px; font-size:11px; }
+}
+</style>
+</head>
+<body>
+
+<div class="atmo"><div class="atmo-ring"></div>
+  <svg class="taiji-bg" viewBox="0 0 100 100" fill="none">
+    <circle cx="50" cy="50" r="48" stroke="currentColor" stroke-width=".3"/>
+    <path d="M50 2 A48 48 0 0 1 50 50 A24 24 0 0 0 50 98 A48 48 0 0 1 50 2Z" fill="currentColor"/>
+    <circle cx="50" cy="24" r="6" fill="currentColor"/>
+    <circle cx="50" cy="76" r="6" fill="none" stroke="currentColor" stroke-width=".3"/>
+  </svg>
+  <div class="bagua-bg">
+    <span>☰</span><span>☲</span><span>☷</span><span>☵</span>
+    <span>☱</span><span>☳</span><span>☶</span><span>☴</span>
+  </div>
+</div>
+
+<a class="back" href="javascript:history.back()">←</a>
+
+<!-- ===== Topbar ===== -->
+<nav class="topbar">
+  <div class="brand">
+    <div class="seal">玄</div>
+    <div class="brand-text">
+      <strong>周易排盘</strong>
+      <span>八字排盘 · 六爻问卦</span>
+    </div>
+  </div>
+  <div class="navlinks">
+    <a href="bazi-latest.html" class="active">八字</a>
+    <a href="liuyao/liuyao-latest.html">六爻</a>
+  </div>
+  <div class="nav-icon">◇</div>
+</nav>
+
+<!-- ===== Main ===== -->
+<main class="wrap" id="home">
+
+  <div class="hero">
+    <h1>周易排盘<br><span>知时 · 察事 · 明进退</span></h1>
+    <p>传统术数精华 · AI 辅助分析 · 现代解读，一键生成完整排盘</p>
+    <div class="tag">在线排盘 v3.0</div>
+  </div>
+
+  <div class="bagua-bar">
+    <span>☰</span><span>☱</span><span>☲</span><span>☳</span>
+    <span>☴</span><span>☵</span><span>☶</span><span>☷</span>
+  </div>
+
+  <div class="quick-nav">
+    <div class="qn-title">
+      <span>选择工具</span>
+      <div class="line"></div>
+    </div>
+    <div class="qn-grid">
+      <a class="qn-card" href="bazi-latest.html">
+        <div class="qn-icon">八</div>
+        <div class="qn-body">
+          <h3>八字排盘</h3>
+          <p>五行格局 · 十神关系 · 大运流年</p>
+        </div>
+        <span class="qn-arrow">→</span>
+      </a>
+      <a class="qn-card" href="liuyao/liuyao-latest.html">
+        <div class="qn-icon">爻</div>
+        <div class="qn-body">
+          <h3>六爻排盘</h3>
+          <p>在线起卦 · 本卦变卦 · 用神分析</p>
+        </div>
+        <span class="qn-arrow">→</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="module-grid">
+    <div class="module-card"><span>🔮</span><strong>AI解卦</strong></div>
+    <div class="module-card"><span>📜</span><strong>子平八字</strong></div>
+    <div class="module-card"><span>☯</span><strong>纳甲筮法</strong></div>
+    <div class="module-card"><span>⚡</span><strong>实时排盘</strong></div>
+    <div class="module-card"><span>📱</span><strong>全端适配</strong></div>
+  </div>
+
+  <div class="features">
+    <div class="feat"><span class="i">🔮</span><h4>AI 解读</h4><p>DeepSeek 大模型辅助分析</p></div>
+    <div class="feat"><span class="i">📜</span><h4>经典传承</h4><p>子平八字 · 六爻纳甲</p></div>
+    <div class="feat"><span class="i">⚡</span><h4>实时排盘</h4><p>即输即得 · 无需等待</p></div>
+    <div class="feat"><span class="i">📱</span><h4>全端适配</h4><p>手机电脑均可访问</p></div>
+  </div>
+
+  <footer class="footer">
+    <div class="l"></div>
+    <p>仅供学习参考 · 理性对待</p>
+  </footer>
+
+</main>
+
+<section class="shell" id="shell">
+  <div class="shell-top">
+    <div class="l">
+      <button class="hm" id="homeBtn" onclick="gh()">← 首页</button>
+    </div>
+    <div class="t" id="shellT">周易排盘</div>
+    <div class="sw">
+      <button onclick="op('bazi')">八字</button>
+      <button onclick="op('liuyao')">六爻</button>
+    </div>
+  </div>
+  <iframe id="frame" title="模块"></iframe>
+</section>
+
+<script>
+const M={bazi:{title:'八字排盘 · AI 命局分析',src:'bazi-latest.html'},liuyao:{title:'六爻排盘 · 问事解卦',src:'liuyao/liuyao-latest.html'}};
+function op(t){const a=M[t];if(!a)return;document.getElementById('home').style.display='none';document.getElementById('shell').style.display='block';document.getElementById('shellT').textContent=a.title;document.getElementById('frame').src=a.src;location.hash=t;}
+function gh(){document.getElementById('frame').src='';document.getElementById('shell').style.display='none';document.getElementById('home').style.display='block';history.replaceState(null,'',location.pathname);}
+window.addEventListener('load',()=>{const t=location.hash.replace('#','');if(M[t])op(t);});
+</script>
+</body>
+</html>
